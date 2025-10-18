@@ -53,18 +53,21 @@
 ## 技術選定 (2025年1月調査結果)
 
 ### バックエンド
+- Go: 1.25 (airパッケージの要件により)
 - Echo: v4 (最新版)
 - PostgreSQL ドライバ: `github.com/jackc/pgx/v5`
-- セッション管理: `github.com/alexedwards/scs/v2` + PostgreSQLストア
+- セッション管理: `github.com/alexedwards/scs/v2` + `github.com/alexedwards/scs/pgxstore` (pgxpool.Pool対応)
 - OAuth2: `golang.org/x/oauth2`
+- ホットリロード: `github.com/air-verse/air` (開発環境のみ)
 
 ### フロントエンド
 - Next.js: 15 (App Router を使用)
 - TypeScript: 最新版
+- パッケージマネージャ: pnpm
 
 ### インフラ
 - Podman Compose
-- PostgreSQL: 最新版
+- PostgreSQL: 16-alpine
 
 ## DDD実装ガイドライン
 - Entities: 可変で識別可能な構造体
@@ -77,6 +80,23 @@
   - application: ユースケース固有の操作
   - infrastructure: データベースアクセスなどの技術的機能
 
+## 実装済み機能
+
+### データベース接続のリトライロジック
+- バックエンド起動時にPostgreSQLへの接続を最大30回リトライ (2秒間隔)
+- これによりpodman-composeでの起動順序の問題を解決
+- 実装場所: `backend/cmd/api/main.go`
+
+### Docker/Podman設定
+- 開発環境: `compose.dev.yaml`
+  - backendでair (ホットリロード) を使用
+  - frontendでpnpm devを使用
+  - ボリュームマウントでソースコードの変更を即座に反映
+- 本番環境: `compose.yaml`
+  - マルチステージビルドで最適化されたイメージを作成
+  - Next.jsはstandaloneモードでビルド
+
 ## 実装前の確認
 - ユーザに指示された内容を必ずCLAUDE.mdに保存
 - ユーザの指示内容とCLAUDE.mdの内容に相違がないことを確認してから実装開始
+- **重要**: 実装後は必ずCLAUDE.mdを更新すること
