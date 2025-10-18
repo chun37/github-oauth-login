@@ -3,7 +3,7 @@ package session
 import (
 	"time"
 
-	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -12,7 +12,7 @@ import (
 // Session lifetime is set to 1 year (365 days) as per requirements
 func NewSessionManager(pool *pgxpool.Pool) *scs.SessionManager {
 	sessionManager := scs.New()
-	sessionManager.Store = postgresstore.NewWithCleanupInterval(pool, 30*time.Minute)
+	sessionManager.Store = pgxstore.NewWithCleanupInterval(pool, 30*time.Minute)
 
 	// Set session lifetime to 1 year
 	sessionManager.Lifetime = 365 * 24 * time.Hour

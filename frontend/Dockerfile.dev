@@ -9,6 +9,9 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
+# Install dependencies
+RUN pnpm install
+
 EXPOSE 3000
 
-# pnpm install and dev will be run by docker-compose
+# pnpm dev will be run by docker-compose
