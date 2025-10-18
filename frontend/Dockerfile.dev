@@ -1,0 +1,14 @@
+# Development Dockerfile for frontend
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+EXPOSE 3000
+
+# pnpm install and dev will be run by docker-compose
