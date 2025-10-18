@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github-oauth-backend/internal/application/usecase"
 	"github-oauth-backend/internal/infrastructure/database"
@@ -13,6 +14,7 @@ import (
 	"github-oauth-backend/internal/interfaces/handler"
 	customMiddleware "github-oauth-backend/internal/interfaces/middleware"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -39,10 +41,26 @@ func main() {
 	frontendURL := getEnv("FRONTEND_URL", "http://localhost:3000")
 	port := getEnv("BACKEND_PORT", "8080")
 
-	// Initialize database connection
-	pool, err := database.NewPostgresPool(ctx, dbConfig)
+	// Initialize database connection with retry
+	var pool *pgxpool.Pool
+	var err error
+	maxRetries := 30
+	retryDelay := 2 * time.Second
+
+	log.Println("Attempting to connect to database...")
+	for i := 0; i < maxRetries; i++ {
+		pool, err = database.NewPostgresPool(ctx, dbConfig)
+		if err == nil {
+			break
+		}
+		log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxRetries, err)
+		if i < maxRetries-1 {
+			log.Printf("Retrying in %v...", retryDelay)
+			time.Sleep(retryDelay)
+		}
+	}
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Failed to connect to database after %d attempts: %v", maxRetries, err)
 	}
 	defer pool.Close()
 
