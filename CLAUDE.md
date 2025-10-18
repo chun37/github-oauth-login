@@ -42,11 +42,13 @@
 
 ## 技術要件
 - ポート番号:
-  - バックエンド: 8080
-  - フロントエンド: 3000
+  - バックエンド: 8080 (開発環境のみ公開)
+  - フロントエンド: 3000 (開発環境のみ公開)
   - PostgreSQL: 5432
+  - nginx (本番環境のみ): 8000 (ホスト側)
+    - 注意: rootlessモードのpodmanでは1024未満のポートは権限が必要
 - 開発環境用とプロダクション用の両方を作成（プロダクションで内容が変わる場合）
-- リバースプロキシは不要
+- リバースプロキシ: 本番環境ではnginxを使用
 - ライブラリは最新バージョンを調査して使用
 - ベストプラクティスは都度調査すること
 
@@ -68,6 +70,7 @@
 ### インフラ
 - Podman Compose
 - PostgreSQL: 16-alpine
+- nginx: alpine (本番環境のみ)
 
 ## DDD実装ガイドライン
 - Entities: 可変で識別可能な構造体
@@ -87,18 +90,47 @@
 - これによりpodman-composeでの起動順序の問題を解決
 - 実装場所: `backend/cmd/api/main.go`
 
+### nginx リバースプロキシ設定 (本番環境)
+- 設定ファイル: `nginx/nginx.conf`
+- ルーティング:
+  - `/` → `frontend:3000` (Next.jsアプリケーション)
+  - `/api/` → `backend:8080` (バックエンドAPI)
+- Cookieの転送を有効化
+- ホスト側ポート: 8000 (rootlessモードのpodman対応)
+
+### フロントエンドAPIクライアント
+- 実装場所: `frontend/src/lib/api.ts`
+- `NEXT_PUBLIC_BACKEND_URL` 環境変数を使用してAPIベースURLを設定
+- 本番環境: `/api` (nginx経由の相対パス)
+- 開発環境: `http://127.0.0.1:8080` (直接バックエンドにアクセス)
+- APIパスは `/api` プレフィックスを含まない（環境変数に含まれるため）
+  - 例: `${API_BASE_URL}/auth/login` → `/api/auth/login`
+
 ### Docker/Podman設定
 - 開発環境: `compose.dev.yaml`
   - backendでair (ホットリロード) を使用
   - frontendでpnpm devを使用
   - ボリュームマウントでソースコードの変更を即座に反映
+  - バックエンドとフロントエンドはそれぞれのポートで直接公開
+  - CORS設定を有効化
 - 本番環境: `compose.yaml`
   - マルチステージビルドで最適化されたイメージを作成
   - Next.jsはstandaloneモードでビルド
   - `depends_on`はシンプルな構文を使用（`condition: service_healthy`は`podman-compose`で非サポートのため）
   - バックエンドのリトライロジックでPostgreSQLの準備完了を待機
+  - nginxをリバースプロキシとして使用
+    - `/` → frontend:3000
+    - `/api/` → backend:8080
+  - バックエンドとフロントエンドのポートは内部ネットワークのみ
+  - 外部からはポート8000のみアクセス可能
+  - CORS設定は無効化（同一オリジンからのリクエストになるため）
+  - フロントエンドのビルド時に `NEXT_PUBLIC_BACKEND_URL=/api` を渡す
+    - `build.args` で指定
+    - `Dockerfile` で `ARG` と `ENV` を使用してビルド時に環境変数を設定
 
 ## 実装前の確認
 - ユーザに指示された内容を必ずCLAUDE.mdに保存
 - ユーザの指示内容とCLAUDE.mdの内容に相違がないことを確認してから実装開始
-- **重要**: 実装後は必ずCLAUDE.mdを更新すること
+- **重要**: 実装後は必ずCLAUDE.mdとREADME.mdの両方を更新すること
+  - CLAUDE.md: プロジェクト要件、技術選定、実装済み機能を更新
+  - README.md: セットアップ手順、使用方法、プロジェクト構造を更新

@@ -40,6 +40,7 @@ func main() {
 
 	frontendURL := getEnv("FRONTEND_URL", "http://127.0.0.1:3000")
 	port := getEnv("BACKEND_PORT", "8080")
+	env := getEnv("ENV", "development")
 
 	// Initialize database connection with retry
 	var pool *pgxpool.Pool
@@ -93,7 +94,12 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(customMiddleware.CORSConfig(frontendURL))
+
+	// CORS設定: 本番環境ではnginx経由なのでCORSは不要だが、開発環境では必要
+	if env == "development" {
+		e.Use(customMiddleware.CORSConfig(frontendURL))
+	}
+
 	e.Use(echo.WrapMiddleware(sessionManager.LoadAndSave))
 
 	// Routes

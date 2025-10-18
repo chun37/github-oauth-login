@@ -3,7 +3,7 @@ import type { GitHubUser } from '@/types/github'
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8080'
 
 export async function fetchProfile(): Promise<GitHubUser> {
-  const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+  const response = await fetch(`${API_BASE_URL}/user/profile`, {
     credentials: 'include',
   })
 
@@ -16,7 +16,7 @@ export async function fetchProfile(): Promise<GitHubUser> {
 
 export async function checkAuth(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/check`, {
+    const response = await fetch(`${API_BASE_URL}/auth/check`, {
       credentials: 'include',
     })
 
@@ -32,5 +32,5 @@ export async function checkAuth(): Promise<boolean> {
 }
 
 export function getLoginURL(): string {
-  return `${API_BASE_URL}/api/auth/login`
+  return `${API_BASE_URL}/auth/login`
 }
