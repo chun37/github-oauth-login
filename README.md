@@ -40,8 +40,8 @@ GitHub OAuth を使用したログインシステムのサンプルアプリケ�
 2. "New OAuth App" をクリック
 3. 以下の情報を入力:
    - **Application name**: 任意の名前
-   - **Homepage URL**: `http://localhost:3000`
-   - **Authorization callback URL**: `http://localhost:8080/api/auth/callback`
+   - **Homepage URL**: `http://127.0.0.1:3000`
+   - **Authorization callback URL**: `http://127.0.0.1:8080/api/auth/callback`
 4. Client ID と Client Secret を取得
 
 ### 環境変数の設定
@@ -84,8 +84,8 @@ docker-compose -f compose.dev.yaml up
 ```
 
 アクセス:
-- フロントエンド: http://localhost:3000
-- バックエンド: http://localhost:8080
+- フロントエンド: http://127.0.0.1:3000
+- バックエンド: http://127.0.0.1:8080
 
 ### プロダクション環境
 

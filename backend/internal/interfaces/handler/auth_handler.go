@@ -76,7 +76,7 @@ func (h *AuthHandler) Callback(c echo.Context) error {
 	// Redirect to frontend
 	frontendURL := c.Request().Header.Get("X-Frontend-URL")
 	if frontendURL == "" {
-		frontendURL = "http://localhost:3000"
+		frontendURL = "http://127.0.0.1:3000"
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/profile")

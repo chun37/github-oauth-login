@@ -24,7 +24,7 @@ func main() {
 
 	// Load environment variables
 	dbConfig := database.Config{
-		Host:     getEnv("DB_HOST", "localhost"),
+		Host:     getEnv("DB_HOST", "127.0.0.1"),
 		Port:     getEnv("DB_PORT", "5432"),
 		User:     getEnv("DB_USER", "postgres"),
 		Password: getEnv("DB_PASSWORD", "postgres"),
@@ -35,10 +35,10 @@ func main() {
 	oauthCfg := oauth.Config{
 		ClientID:     getEnv("GITHUB_CLIENT_ID", ""),
 		ClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		RedirectURL:  getEnv("GITHUB_REDIRECT_URL", "http://localhost:8080/api/auth/callback"),
+		RedirectURL:  getEnv("GITHUB_REDIRECT_URL", "http://127.0.0.1:8080/api/auth/callback"),
 	}
 
-	frontendURL := getEnv("FRONTEND_URL", "http://localhost:3000")
+	frontendURL := getEnv("FRONTEND_URL", "http://127.0.0.1:3000")
 	port := getEnv("BACKEND_PORT", "8080")
 
 	// Initialize database connection with retry
