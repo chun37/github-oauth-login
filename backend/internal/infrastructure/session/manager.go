@@ -22,7 +22,7 @@ func NewSessionManager(pool *pgxpool.Pool) *scs.SessionManager {
 	sessionManager.Cookie.Domain = "127.0.0.1" // Set domain to allow cookie sharing across different ports
 	sessionManager.Cookie.HttpOnly = true
 	sessionManager.Cookie.Secure = false // Set to false for HTTP environments
-	sessionManager.Cookie.SameSite = 3   // SameSite=Lax
+	sessionManager.Cookie.SameSite = 1   // SameSite=None (for cross-site OAuth redirects)
 	sessionManager.Cookie.Persist = true
 
 	return sessionManager

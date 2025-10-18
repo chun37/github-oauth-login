@@ -16,13 +16,15 @@ import (
 type AuthHandler struct {
 	oauthConfig    *oauth2.Config
 	sessionManager *scs.SessionManager
+	frontendURL    string
 }
 
 // NewAuthHandler creates a new AuthHandler
-func NewAuthHandler(oauthConfig *oauth2.Config, sessionManager *scs.SessionManager) *AuthHandler {
+func NewAuthHandler(oauthConfig *oauth2.Config, sessionManager *scs.SessionManager, frontendURL string) *AuthHandler {
 	return &AuthHandler{
 		oauthConfig:    oauthConfig,
 		sessionManager: sessionManager,
+		frontendURL:    frontendURL,
 	}
 }
 
@@ -76,7 +78,7 @@ func (h *AuthHandler) Callback(c echo.Context) error {
 	// Redirect to frontend
 	frontendURL := c.Request().Header.Get("X-Frontend-URL")
 	if frontendURL == "" {
-		frontendURL = "http://127.0.0.1:3000"
+		frontendURL = h.frontendURL
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/profile")

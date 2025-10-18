@@ -35,10 +35,10 @@ func main() {
 	oauthCfg := oauth.Config{
 		ClientID:     getEnv("GITHUB_CLIENT_ID", ""),
 		ClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		RedirectURL:  getEnv("GITHUB_REDIRECT_URL", "http://127.0.0.1:8080/api/auth/callback"),
+		RedirectURL:  getEnv("GITHUB_REDIRECT_URL", ""),
 	}
 
-	frontendURL := getEnv("FRONTEND_URL", "http://127.0.0.1:3000")
+	frontendURL := getEnv("FRONTEND_URL", "")
 	port := getEnv("BACKEND_PORT", "8080")
 	env := getEnv("ENV", "development")
 
@@ -85,7 +85,7 @@ func main() {
 	githubUseCase := usecase.NewGitHubUseCase(githubService)
 
 	// Initialize handlers
-	authHandler := handler.NewAuthHandler(oauthConfig, sessionManager)
+	authHandler := handler.NewAuthHandler(oauthConfig, sessionManager, frontendURL)
 	userHandler := handler.NewUserHandler(githubUseCase, sessionManager)
 
 	// Initialize Echo

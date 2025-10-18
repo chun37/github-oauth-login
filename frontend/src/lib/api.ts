@@ -1,6 +1,6 @@
 import type { GitHubUser } from '@/types/github'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8080'
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
 export async function fetchProfile(): Promise<GitHubUser> {
   const response = await fetch(`${API_BASE_URL}/user/profile`, {

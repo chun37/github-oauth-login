@@ -32,9 +32,9 @@
 - Cookie の有効期限: 1年 (365日)
 - セッション情報の保存先: PostgreSQL
 - Cookie設定:
-  - Secure属性: true (HTTPでも動作可能)
+  - Secure属性: false (HTTP環境で動作)
   - HttpOnly: true
-  - SameSite: Lax
+  - SameSite: None (GitHub OAuthのクロスサイトリダイレクトに対応)
 
 ## プロフィール情報
 - GitHubから取得したプロフィール情報はデータベースに保存しない
@@ -42,13 +42,15 @@
 
 ## 技術要件
 - ポート番号:
-  - バックエンド: 8080 (開発環境のみ公開)
-  - フロントエンド: 3000 (開発環境のみ公開)
-  - PostgreSQL: 5432
-  - nginx (本番環境のみ): 8000 (ホスト側)
-    - 注意: rootlessモードのpodmanでは1024未満のポートは権限が必要
+  - バックエンド: 8080 (内部ネットワークのみ)
+  - フロントエンド: 3000 (内部ネットワークのみ)
+  - PostgreSQL: 5432 (内部ネットワークのみ)
+  - nginx: 8000 (ホスト側、rootlessモードのpodman対応)
+- すべてのアクセスはポート8000のnginx経由で行う
+- アプリケーションコード内にポート3000や8080のハードコードは禁止
+- すべてのURLは環境変数から取得すること
 - 開発環境用とプロダクション用の両方を作成（プロダクションで内容が変わる場合）
-- リバースプロキシ: 本番環境ではnginxを使用
+- リバースプロキシ: nginxを使用
 - ライブラリは最新バージョンを調査して使用
 - ベストプラクティスは都度調査すること
 
@@ -94,39 +96,42 @@
 - 設定ファイル: `nginx/nginx.conf`
 - ルーティング:
   - `/` → `frontend:3000` (Next.jsアプリケーション)
-  - `/api/` → `backend:8080` (バックエンドAPI)
+  - `/api/` → `backend:8080/api/` (バックエンドAPI、パスを保持)
 - Cookieの転送を有効化
 - ホスト側ポート: 8000 (rootlessモードのpodman対応)
+- 注意: `proxy_pass http://backend/api/;` と末尾に `/api/` を含めることで、バックエンドの `/api` プレフィックスを保持
 
 ### フロントエンドAPIクライアント
 - 実装場所: `frontend/src/lib/api.ts`
 - `NEXT_PUBLIC_BACKEND_URL` 環境変数を使用してAPIベースURLを設定
-- 本番環境: `/api` (nginx経由の相対パス)
-- 開発環境: `http://127.0.0.1:8080` (直接バックエンドにアクセス)
-- APIパスは `/api` プレフィックスを含まない（環境変数に含まれるため）
-  - 例: `${API_BASE_URL}/auth/login` → `/api/auth/login`
+- `/api` (nginx経由の相対パス)
+- バックエンドのAPIルートは `/api` プレフィックスを含む
+- ポート番号のハードコードは削除済み
+- すべてのアクセスはnginx経由 (ポート8000) で行う
 
 ### Docker/Podman設定
-- 開発環境: `compose.dev.yaml`
-  - backendでair (ホットリロード) を使用
-  - frontendでpnpm devを使用
-  - ボリュームマウントでソースコードの変更を即座に反映
-  - バックエンドとフロントエンドはそれぞれのポートで直接公開
-  - CORS設定を有効化
-- 本番環境: `compose.yaml`
-  - マルチステージビルドで最適化されたイメージを作成
-  - Next.jsはstandaloneモードでビルド
-  - `depends_on`はシンプルな構文を使用（`condition: service_healthy`は`podman-compose`で非サポートのため）
-  - バックエンドのリトライロジックでPostgreSQLの準備完了を待機
-  - nginxをリバースプロキシとして使用
-    - `/` → frontend:3000
-    - `/api/` → backend:8080
-  - バックエンドとフロントエンドのポートは内部ネットワークのみ
-  - 外部からはポート8000のみアクセス可能
-  - CORS設定は無効化（同一オリジンからのリクエストになるため）
-  - フロントエンドのビルド時に `NEXT_PUBLIC_BACKEND_URL=/api` を渡す
-    - `build.args` で指定
-    - `Dockerfile` で `ARG` と `ENV` を使用してビルド時に環境変数を設定
+- 開発環境と本番環境の両方で `compose.yaml` を使用
+- nginxをリバースプロキシとして使用
+  - `/` → frontend:3000
+  - `/api/` → backend:8080/api/ (パスを保持)
+- バックエンドとフロントエンドのポートは内部ネットワークのみ
+- 外部からはポート8000のみアクセス可能
+- マルチステージビルドで最適化されたイメージを作成
+- Next.jsはstandaloneモードでビルド
+- `depends_on`はシンプルな構文を使用（`condition: service_healthy`は`podman-compose`で非サポートのため）
+- バックエンドのリトライロジックでPostgreSQLの準備完了を待機
+- CORS設定は無効化（同一オリジンからのリクエストになるため）
+- フロントエンドのビルド時に `NEXT_PUBLIC_BACKEND_URL=/api` を渡す
+  - `build.args` で指定
+  - `Dockerfile` で `ARG` と `ENV` を使用してビルド時に環境変数を設定
+
+### URL設定
+- すべてのアクセスは `http://127.0.0.1:8000` (nginx経由) で行う
+- 環境変数:
+  - `FRONTEND_URL`: `http://127.0.0.1:8000`
+  - `BACKEND_URL`: `http://127.0.0.1:8000` (nginx経由でバックエンドにアクセス)
+  - `GITHUB_REDIRECT_URL`: `http://127.0.0.1:8000/api/auth/callback`
+- アプリケーションコード内にポート番号のハードコードは禁止
 
 ## 実装前の確認
 - ユーザに指示された内容を必ずCLAUDE.mdに保存
