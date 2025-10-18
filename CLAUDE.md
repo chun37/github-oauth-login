@@ -95,6 +95,8 @@
 - 本番環境: `compose.yaml`
   - マルチステージビルドで最適化されたイメージを作成
   - Next.jsはstandaloneモードでビルド
+  - `depends_on`はシンプルな構文を使用（`condition: service_healthy`は`podman-compose`で非サポートのため）
+  - バックエンドのリトライロジックでPostgreSQLの準備完了を待機
 
 ## 実装前の確認
 - ユーザに指示された内容を必ずCLAUDE.mdに保存
