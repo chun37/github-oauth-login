@@ -2,7 +2,7 @@ package handler
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/hex"
 	"net/http"
 
 	"github-oauth-backend/internal/infrastructure/session"
@@ -82,11 +82,12 @@ func (h *AuthHandler) Callback(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/profile")
 }
 
-// generateStateToken generates a random state token for OAuth
+// generateStateToken generates a random state token for OAuth (alphanumeric only)
 func generateStateToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	// Use hex encoding to ensure only alphanumeric characters (0-9, a-f)
+	return hex.EncodeToString(b), nil
 }
