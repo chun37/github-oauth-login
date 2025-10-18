@@ -66,6 +66,11 @@ func main() {
 
 	log.Println("Database connection established")
 
+	// Run database migrations
+	if err := database.RunMigrations(ctx, pool, "migrations"); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
 	// Initialize session manager
 	sessionManager := session.NewSessionManager(pool)
 
