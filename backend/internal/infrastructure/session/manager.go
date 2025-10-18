@@ -20,8 +20,8 @@ func NewSessionManager(pool *pgxpool.Pool) *scs.SessionManager {
 	// Cookie settings
 	sessionManager.Cookie.Name = "session_id"
 	sessionManager.Cookie.HttpOnly = true
-	sessionManager.Cookie.Secure = true // Will work even in HTTP environments
-	sessionManager.Cookie.SameSite = 3  // SameSite=Lax
+	sessionManager.Cookie.Secure = false // Set to false for HTTP environments
+	sessionManager.Cookie.SameSite = 3   // SameSite=Lax
 	sessionManager.Cookie.Persist = true
 
 	return sessionManager
