@@ -133,6 +133,21 @@
   - `GITHUB_REDIRECT_URL`: `http://127.0.0.1:8000/api/auth/callback`
 - アプリケーションコード内にポート番号のハードコードは禁止
 
+## デプロイメント
+
+### Dockerを使用したデプロイ
+- Podman/Docker Composeを使用した簡易デプロイ
+- 詳細はREADME.mdを参照
+
+### Docker不使用のデプロイ
+- 詳細なデプロイ手順は `DEPLOYMENT.md` を参照
+- 以下のコンポーネントを個別にセットアップ:
+  - Go 1.25以上でバックエンドをビルド
+  - Node.js 20以上でフロントエンドをビルド（standaloneモード）
+  - PostgreSQL 16のセットアップとマイグレーション
+  - nginxをリバースプロキシとして設定
+  - systemdサービスとして自動起動設定
+
 ## 実装前の確認
 - ユーザに指示された内容を必ずCLAUDE.mdに保存
 - ユーザの指示内容とCLAUDE.mdの内容に相違がないことを確認してから実装開始
