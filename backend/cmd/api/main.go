@@ -41,6 +41,7 @@ func main() {
 	frontendURL := getEnv("FRONTEND_URL", "")
 	port := getEnv("BACKEND_PORT", "8080")
 	env := getEnv("ENV", "development")
+	cookieDomain := getEnv("COOKIE_DOMAIN", "")
 
 	// Initialize database connection with retry
 	var pool *pgxpool.Pool
@@ -73,7 +74,7 @@ func main() {
 	}
 
 	// Initialize session manager
-	sessionManager := session.NewSessionManager(pool)
+	sessionManager := session.NewSessionManager(pool, cookieDomain)
 
 	// Initialize OAuth config
 	oauthConfig := oauth.NewGitHubOAuthConfig(oauthCfg)

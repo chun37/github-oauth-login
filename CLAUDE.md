@@ -32,9 +32,11 @@
 - Cookie の有効期限: 1年 (365日)
 - セッション情報の保存先: PostgreSQL
 - Cookie設定:
+  - Domain: 環境変数`COOKIE_DOMAIN`で指定（開発:`127.0.0.1`、本番:サーバーのIPアドレス）
   - Secure属性: false (HTTP環境で動作)
-  - HttpOnly: true
-  - SameSite: None (GitHub OAuthのクロスサイトリダイレクトに対応)
+  - HttpOnly: true (XSS対策)
+  - SameSite: Lax (HTTP環境に適した設定)
+  - Persist: true (永続化)
 
 ## プロフィール情報
 - GitHubから取得したプロフィール情報はデータベースに保存しない
@@ -131,7 +133,15 @@
   - `FRONTEND_URL`: `http://127.0.0.1:8000`
   - `BACKEND_URL`: `http://127.0.0.1:8000` (nginx経由でバックエンドにアクセス)
   - `GITHUB_REDIRECT_URL`: `http://127.0.0.1:8000/api/auth/callback`
+  - `COOKIE_DOMAIN`: Cookie Domainの指定（開発:`127.0.0.1`、本番:サーバーのIPアドレス）
 - アプリケーションコード内にポート番号のハードコードは禁止
+
+### Cookie Domain設定
+- Cookie Domainを環境変数で管理
+- 実装場所: `backend/internal/infrastructure/session/manager.go`, `backend/cmd/api/main.go`
+- 開発環境: `COOKIE_DOMAIN=127.0.0.1`
+- 本番環境: `COOKIE_DOMAIN=10.11.22.112` (または実際のサーバーIPアドレス/ドメイン)
+- これによりGitHubからのリダイレクト後もCookieが正しく送信される
 
 ## デプロイメント
 

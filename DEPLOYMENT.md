@@ -184,6 +184,9 @@ DB_SSLMODE=disable
 # Session Settings
 SESSION_SECRET=your_random_session_secret_min_32_characters_or_more
 
+# Cookie Settings
+COOKIE_DOMAIN=10.11.22.112
+
 # Application Settings
 BACKEND_PORT=8080
 FRONTEND_URL=https://yourdomain.com
@@ -337,6 +340,15 @@ sudo journalctl -u github-oauth-frontend.service -f
 ```
 
 ## nginxの設定
+
+### 重要: Cookie設定について
+
+バックエンドが正しくCookieを設定できるよう、`.env`ファイルに`COOKIE_DOMAIN`を必ず設定してください。
+
+- **開発環境**: `COOKIE_DOMAIN=127.0.0.1`
+- **本番環境**: `COOKIE_DOMAIN=10.11.22.112` (実際のサーバーのIPアドレスまたはドメイン名)
+
+この設定がないと、GitHubからのOAuthリダイレクト後にCookieが送信されず、認証が失敗します。
 
 ### 1. nginx設定ファイルの作成
 

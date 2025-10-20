@@ -1,6 +1,7 @@
 package session
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -10,7 +11,7 @@ import (
 
 // NewSessionManager creates a new session manager with PostgreSQL store
 // Session lifetime is set to 1 year (365 days) as per requirements
-func NewSessionManager(pool *pgxpool.Pool) *scs.SessionManager {
+func NewSessionManager(pool *pgxpool.Pool, cookieDomain string) *scs.SessionManager {
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.NewWithCleanupInterval(pool, 30*time.Minute)
 
@@ -19,10 +20,10 @@ func NewSessionManager(pool *pgxpool.Pool) *scs.SessionManager {
 
 	// Cookie settings
 	sessionManager.Cookie.Name = "session_id"
-	sessionManager.Cookie.Domain = "127.0.0.1" // Set domain to allow cookie sharing across different ports
+	sessionManager.Cookie.Domain = cookieDomain // Set domain from environment variable
 	sessionManager.Cookie.HttpOnly = true
-	sessionManager.Cookie.Secure = false // Set to false for HTTP environments
-	sessionManager.Cookie.SameSite = 1   // SameSite=None (for cross-site OAuth redirects)
+	sessionManager.Cookie.Secure = false                      // Set to false for HTTP environments
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode // SameSite=Lax (appropriate for HTTP environments)
 	sessionManager.Cookie.Persist = true
 
 	return sessionManager
